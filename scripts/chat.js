@@ -1,7 +1,13 @@
 // Collapsible
 var coll = document.getElementsByClassName("collapsible");
-let __score__=0;
-let __total__ = 0;
+
+let __score__=0;    // current score
+let __total__ = 0;  // total score
+let __questionCount__ = 0;  // index of question
+let __selected__ = 'null';  // selected test in drop down menu
+
+const chatBottom = document.getElementById("chat-bar-bottom")
+
 for (let i = 0; i < coll.length; i++) {
     coll[i].addEventListener("click", function () {
         this.classList.toggle("active");
@@ -19,9 +25,6 @@ for (let i = 0; i < coll.length; i++) {
 
 
 // QUESTIONS
-
-
-
 let firstMessage = "Hello! Welcome to the new text some text some more text..\nThen select the following options!";
 
 function firstBotMessage() {
@@ -36,14 +39,16 @@ function firstBotMessage() {
 
     $("#chat-timestamp").append(time);
 
+    // creating drop down and onchange => questioning(this)
+    //                                                        onchange = questioning(this)
     let optionHtml = '<select name="disorders" id="disorders" onchange="questioning(this)"> <option value="null">Select a test</option> ';
-
     for (var key in questions){
         optionHtml += `<option value="${key}">${key}</option>`
     
     }
+
     $("#chatbox").append(optionHtml);
-    document.getElementById("userInput").scrollIntoView(false);
+    chatBottom.scrollIntoView(false);
 
 }
 
@@ -57,20 +62,48 @@ function questioning(select){
         return;
     }
 
-    console.log(questions[select.value].length,questions[select.value][0] )
+    __selected__ = select.value;
     __total__ = questions[select.value]['totalPoints'];
 
-    for (let index = 0; index < questions[select.value]['questions'].length; index++) {
-        const element = questions[select.value]['questions'][index];
-        console.log(element);
-        scoring(element);
+    loadQuestion(0);
+}
+
+function loadQuestion(questionNum){
+    if(questionNum < questions[__selected__]['questions'].length){
+        const element = questions[__selected__]['questions'][questionNum];
+
+        let htm = '<p class="botText"><span>' + element['question'] + '</span></p>';
+        for (let index = 0; index < element['responses'].length; index++) {
+            const option = element['responses'][index];
+            htm += `<button class="option" onclick="updateScore(${index})"> ${option}</button>`
+            
+        }
+        $("#chatbox").append(htm);
+        chatBottom.scrollIntoView(true);
+
+    } else {
+        giveScore();
+        chatBottom.scrollIntoView(false);
+
     }
 }
 
-function scoring(el){
-    for (const key in el) {
-        console.log(el)
-    }
+function giveScore(){
+    let htm = '<p class="botText"><span>Your total score is ' + __score__ + '</span></p>';
+    $("#chatbox").append(htm);
+    chatBottom.scrollIntoView(true);
+    reset();
+}
+
+function updateScore(optionValue){
+    let optionSelected =  questions[__selected__]['questions'][__questionCount__]['responses'][optionValue];
+    let htm = '<p class="userText"><span>' + optionSelected + '</span></p>';
+    $("#chatbox").append(htm);
+    chatBottom.scrollIntoView(true);
+
+    __score__ += optionValue + 1;
+    __questionCount__++;
+    loadQuestion(__questionCount__);
 }
 
 // Retrieve the response
@@ -79,16 +112,12 @@ function getHardResponse(userText) {
     let botHtml = '<p class="botText"><span>' + botResponse + '</span></p>';
     $("#chatbox").append(botHtml);
 
-    document.getElementById("chat-bar-bottom").scrollIntoView(true);
+    chatBottom.scrollIntoView(true);
 }
 
 //Gets the text from the input box and processes it
 function getResponse() {
     let userText = $("#textInput").val();
-
-    if (userText) {
-        userText = firstMessage;
-    }
 
     let userHtml = '<p class="userText"><span>' + userText + '</span></p>';
 
@@ -134,4 +163,6 @@ $("#textInput").keypress(function (e) {
 function reset(){
     __total__ = 0;
     __score__ = 0;
+    __questionCount__ = 0;
+    __selected__ = 'null';
 }

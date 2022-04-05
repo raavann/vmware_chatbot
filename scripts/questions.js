@@ -3,7 +3,7 @@ const questions = {
       "questions" : [
          {
             "question":"bd How are you feeling?",
-            "responses":[ "Good", "fine" ],
+            "responses":[ "Good", "bad" ],
             "points":[ 1, 2 ]
          },
 
